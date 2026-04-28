@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obelisk — Security Documentation</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0812;color:#ede8f5;line-height:1.7}
+    .shell{display:flex;min-height:100vh}
+    .toc{width:230px;min-height:100vh;position:sticky;top:0;height:100vh;overflow-y:auto;background:#0f0d1a;border-right:1px solid #2a2545;padding:1.75rem 0;flex-shrink:0}
+    .toc-brand{padding:0 1.25rem 1.25rem;border-bottom:1px solid #2a2545;margin-bottom:0.75rem}
+    .toc-brand h1{font-size:0.9rem;font-weight:700;color:#c4b5fd}
+    .toc-brand p{font-size:0.68rem;color:#4e4870;margin-top:0.2rem}
+    .toc-section{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#4e4870;padding:0.75rem 1.25rem 0.25rem}
+    .toc a{display:block;padding:0.32rem 1.25rem;font-size:0.77rem;color:#9b93b8;border-left:2px solid transparent;transition:all 0.15s;text-decoration:none}
+    .toc a:hover{color:#c4b5fd;background:#17142a;border-left-color:#6d3fc0}
+    .content{flex:1;max-width:800px;padding:3rem 3rem}
+    .page-title{margin-bottom:3rem;padding-bottom:1.5rem;border-bottom:1px solid #2a2545}
+    .badge{display:inline-flex;align-items:center;gap:0.4rem;background:#2d1f5e;border:1px solid #6d3fc0;color:#c4b5fd;font-size:0.68rem;font-weight:700;padding:0.22rem 0.6rem;border-radius:999px;letter-spacing:0.04em;margin-bottom:0.85rem}
+    .page-title h1{font-size:1.9rem;font-weight:700;color:#ede8f5;letter-spacing:-0.02em;line-height:1.2}
+    .page-title p{font-size:0.875rem;color:#9b93b8;margin-top:0.6rem;max-width:540px}
+    .section{margin-bottom:3.5rem}
+    .section-header{display:flex;align-items:flex-start;gap:0.85rem;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:1px solid #2a2545}
+    .section-num{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;margin-top:2px}
+    .section-header h2{font-size:1.1rem;font-weight:700;color:#ede8f5}
+    .section-header p{font-size:0.75rem;color:#6d5fa0;margin-top:0.15rem}
+    .prose p{font-size:0.855rem;color:#9b93b8;margin-bottom:0.85rem}
+    .prose strong{color:#ede8f5;font-weight:600}
+    .prose code{font-family:'Courier New',monospace;font-size:0.78rem;background:#17142a;border:1px solid #2a2545;padding:0.1rem 0.4rem;border-radius:4px;color:#c4b5fd}
+    .flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:1.1rem 0;background:#0f0d1a;border:1px solid #2a2545;border-radius:10px;padding:0.9rem 1.1rem}
+    .flow-step{background:#17142a;border:1px solid #2a2545;border-radius:7px;padding:0.45rem 0.8rem;font-size:0.73rem;color:#c4b5fd;font-weight:500;white-space:nowrap}
+    .flow-arrow{font-size:0.75rem;color:#4e4870;padding:0 0.45rem;flex-shrink:0}
+    .alert{display:flex;gap:0.7rem;padding:0.8rem 1rem;border-radius:8px;margin:1rem 0;font-size:0.8rem}
+    .alert-icon{font-size:1rem;flex-shrink:0;margin-top:0.05rem}
+    .alert-body{color:#9b93b8;line-height:1.6}
+    .alert-body strong{color:#ede8f5}
+    .alert-purple{background:#2d1f5e22;border:1px solid #6d3fc0}
+    .alert-green{background:#14532d22;border:1px solid #22c55e}
+    .alert-yellow{background:#78350f22;border:1px solid #d29922}
+    .alert-red{background:#7f1d1d22;border:1px solid #f85149}
+    .data-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.8rem}
+    .data-table th{text-align:left;padding:0.55rem 0.85rem;background:#17142a;color:#6d5fa0;font-weight:600;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid #2a2545}
+    .data-table td{padding:0.55rem 0.85rem;border-bottom:1px solid #17142a;color:#9b93b8}
+    .data-table tr:last-child td{border-bottom:none}
+    .data-table td:first-child{color:#c4b5fd;font-family:monospace;font-size:0.75rem}
+    .pill{display:inline-block;font-size:0.63rem;font-weight:700;padding:0.12rem 0.45rem;border-radius:999px;letter-spacing:0.04em}
+    .pill-purple{background:#2d1f5e;color:#c4b5fd;border:1px solid #6d3fc0}
+    .pill-green{background:#14532d;color:#56d364;border:1px solid #22c55e}
+    .pill-blue{background:#1e3a5f;color:#60a5fa;border:1px solid #3b82f6}
+    .pill-red{background:#7f1d1d;color:#fca5a5;border:1px solid #f85149}
+    .pill-yellow{background:#78350f;color:#fbbf24;border:1px solid #d29922}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin:1rem 0}
+    .card{background:#0f0d1a;border:1px solid #2a2545;border-radius:10px;padding:1rem}
+    .card-title{font-size:0.8rem;font-weight:700;color:#ede8f5;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.4rem}
+    .card p{font-size:0.75rem;color:#6d5fa0;line-height:1.5}
+    .code-block{background:#0f0d1a;border:1px solid #2a2545;border-radius:10px;padding:1rem 1.2rem;margin:1rem 0;overflow-x:auto}
+    .code-block pre{font-family:'Courier New',monospace;font-size:0.77rem;color:#c4b5fd;line-height:1.75}
+    .cm{color:#4e4870}.kw{color:#a78bfa}.st{color:#86efac}.fn{color:#60a5fa}.nm{color:#fbbf24}
+  </style>
+</head>
+<body>
+<div class="shell">
+<nav class="toc">
+  <div class="toc-brand"><h1>🔐 Obelisk</h1><p>Security Documentation</p></div>
+  <div class="toc-section">Protection Layers</div>
+  <a href="#s1">1. Password Hashing</a>
+  <a href="#s2">2. AES-256 Encryption</a>
+  <a href="#s3">3. JWT Authentication</a>
+  <a href="#s4">4. Session Management</a>
+  <a href="#s5">5. Re-authentication</a>
+  <div class="toc-section">Attack Prevention</div>
+  <a href="#s6">6. Login Brute-force</a>
+  <a href="#s7">7. Re-auth Rate Limiting</a>
+  <a href="#s8">8. Access Control</a>
+  <div class="toc-section">Files &amp; Audit</div>
+  <a href="#s9">9. Secure File Handling</a>
+  <a href="#s10">10. Activity Logging</a>
+  <div class="toc-section">Summary</div>
+  <a href="#s11">Threat Model</a>
+</nav>
+<main class="content">
+
+  <div class="page-title">
+    <div class="badge">SECURITY DOCUMENTATION v1.0</div>
+    <h1>How Trade Secrets<br/>Are Protected</h1>
+    <p>A complete breakdown of every security layer in Obelisk — from password storage to file access control and audit logging.</p>
+  </div>
+
+
+  <!-- S1: Password Hashing -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num" style="background:#2d1f5e;color:#c4b5fd;">1</div>
+      <div><h2>Password Hashing</h2><p>bcrypt · cost factor 12 · one-way transformation</p></div>
+    </div>
+    <div class="prose">
+      <p>User passwords are <strong>never stored in plain text</strong>. When a user is created or their password is set, it is passed through <strong>bcrypt</strong> — a one-way hashing algorithm specifically designed for passwords.</p>
+      <p>bcrypt automatically generates a random <strong>salt</strong> and embeds it into the hash. This means two users with the same password will have completely different hashes in the database.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step">Plain password</div><div class="flow-arrow">→</div>
+      <div class="flow-step">bcrypt + random salt</div><div class="flow-arrow">→</div>
+      <div class="flow-step">60-char hash</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Stored in MongoDB</div>
+    </div>
+    <div class="code-block"><pre><span class="cm">// Hashing on user creation (seed.js / registration)</span>
+<span class="kw">const</span> hashed = <span class="kw">await</span> bcrypt.<span class="fn">hash</span>(password, <span class="nm">12</span>);
+
+<span class="cm">// Verification on login</span>
+<span class="kw">const</span> match = <span class="kw">await</span> bcrypt.<span class="fn">compare</span>(plainPassword, user.password);</pre></div>
+    <div class="alert alert-purple">
+      <div class="alert-icon">ℹ️</div>
+      <div class="alert-body"><strong>Cost factor 12</strong> means bcrypt performs 2¹² = 4,096 iterations. This makes each hash computation slow enough to resist brute-force attacks, while remaining fast enough for normal login use.</div>
+    </div>
+  </div>
+
+  <!-- S2: AES Encryption -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num" style="background:#1e3a5f;color:#60a5fa;">2</div>
+      <div><h2>AES-256 Encryption</h2><p>AES-256-CBC · random IV per entry · key stored in .env</p></div>
+    </div>
+    <div class="prose">
+      <p>All secret text content is <strong>encrypted before being saved to MongoDB</strong>. The database never contains readable plaintext — only ciphertext. Even if the database were compromised, the data would be unreadable without the encryption key.</p>
+      <p>The system uses <strong>AES-256-CBC</strong> (Advanced Encryption Standard, 256-bit key, Cipher Block Chaining mode) via Node.js's built-in <code>crypto</code> module.</p>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">🔑 Key Management</div><p>The 32-byte AES key is stored in the <code>.env</code> file and loaded via <code>process.env</code>. It never appears in source code or the database.</p></div>
+      <div class="card"><div class="card-title">🎲 Random IV</div><p>A fresh 16-byte Initialization Vector (IV) is generated for every encryption. This ensures identical content produces different ciphertext each time.</p></div>
+      <div class="card"><div class="card-title">💾 Storage Format</div><p>Stored as <code>ivHex:ciphertextHex</code> — the IV is prepended so decryption can always recover it without a separate field.</p></div>
+      <div class="card"><div class="card-title">🔓 Decryption</div><p>Content is only decrypted in memory, on the backend, after the user passes re-authentication. Plaintext is never written to disk or the database.</p></div>
+    </div>
+    <div class="code-block"><pre><span class="cm">// encrypt(text) — utils/encryption.js</span>
+<span class="kw">const</span> iv = crypto.<span class="fn">randomBytes</span>(<span class="nm">16</span>);
+<span class="kw">const</span> cipher = crypto.<span class="fn">createCipheriv</span>(<span class="st">'aes-256-cbc'</span>, key, iv);
+<span class="kw">return</span> iv.<span class="fn">toString</span>(<span class="st">'hex'</span>) + <span class="st">':'</span> + encrypted;
+
+<span class="cm">// What MongoDB stores (example)</span>
+<span class="st">"a3f9c1d2e4b5...":"8f2a1c3d4e5f6a7b..."</span>  <span class="cm">← unreadable ciphertext</span></pre></div>
+    <div class="alert alert-green">
+      <div class="alert-icon">✅</div>
+      <div class="alert-body"><strong>Defence in depth:</strong> Even if an attacker gains direct database access, they cannot read any secret content without the AES key from the server's environment.</div>
+    </div>
+  </div>
+
+  <!-- S3: JWT -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num" style="background:#14532d;color:#56d364;">3</div>
+      <div><h2>JWT Authentication</h2><p>JSON Web Tokens · 1-hour expiry · Bearer scheme</p></div>
+    </div>
+    <div class="prose">
+      <p>After a successful login, the server issues a <strong>JSON Web Token (JWT)</strong> signed with a secret key. This token is sent with every subsequent API request in the <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+      <p>The backend verifies the token's signature on every protected route. If the token is missing, tampered with, or expired, the request is rejected with a <code>401 Unauthorized</code> response.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step">Login request</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Credentials verified</div><div class="flow-arrow">→</div>
+      <div class="flow-step">JWT issued (1h)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Stored in localStorage</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Sent with every API call</div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>JWT Payload Field</th><th>Value</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>User's MongoDB _id</td><td>Identifies the user for DB queries</td></tr>
+        <tr><td>username</td><td>String</td><td>Displayed in UI without extra DB call</td></tr>
+        <tr><td>role</td><td>admin / employee</td><td>Role-based display logic</td></tr>
+        <tr><td>exp</td><td>now + 3600s</td><td>Token expiry — forces re-login after 1 hour</td></tr>
+      </tbody>
+    </table>
+    <div class="alert alert-yellow">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-body"><strong>Token expiry:</strong> When the JWT expires, the frontend's Axios interceptor detects the 401 response and automatically redirects the user to the login page with a "Session expired" message.</div>
+    </div>
+  </div>
+
+  <!-- S4: Session Management -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num" style="background:#78350f;color:#fbbf24;">4</div>
+      <div><h2>Session Management</h2><p>Countdown timer · idle timeout · tab-close cleanup</p></div>
+    </div>
+    <div class="prose">
+      <p>Beyond JWT expiry, Obelisk implements three additional session security mechanisms on the frontend via the <code>useSessionManager</code> hook:</p>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">⏱️ Session Countdown</div><p>A visible MM:SS timer in the sidebar counts down from 60 minutes. Turns orange at 5 minutes, red at 1 minute. Auto-logs out at zero.</p></div>
+      <div class="card"><div class="card-title">💤 Idle Timeout</div><p>If the user has no mouse, keyboard, click, or scroll activity for <strong>2 minutes</strong>, they are automatically logged out. Activity resets the timer.</p></div>
+      <div class="card"><div class="card-title">🗂️ Tab Close Cleanup</div><p>When the browser tab is closed, the JWT token and user data are removed from localStorage via the <code>pagehide</code> event. Tab switches do not trigger this.</p></div>
+      <div class="card"><div class="card-title">🔔 5-Minute Warning</div><p>A toast notification appears when exactly 5 minutes remain in the session, giving the user time to save their work before being logged out.</p></div>
+    </div>
+  </div>
+
+  <!-- S5: Re-auth -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num" style="background:#2d1f5e;color:#c4b5fd;">5</div>
+      <div><h2>Re-authentication for Sensitive Actions</h2><p>Password prompt · per-secret trust · 3-minute window</p></div>
+    </div>
+    <div class="prose">
+      <p>Viewing, editing, or deleting a secret requires the user to <strong>re-enter their password</strong>, even though they are already logged in. This protects against scenarios where someone gains access to an unlocked screen.</p>
+      <p>The backend verifies the password via <code>POST /api/auth/verify-password</code> before any sensitive data is decrypted or modified.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step">Click View / Edit / Delete</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Password modal opens</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Backend verifies password</div><div class="flow-arrow">→</div>
+      <div class="flow-step">Action executes</div><div class="flow-arrow">→</div>
+      <div class="flow-step">3-min trust granted</div>
+    </div>
+    <div class="prose">
+      <p><strong>Per-secret trusted sessions:</strong> After verifying, a 3-minute trusted window is granted for that specific secret's ID. Performing another action on the same secret within 3 minutes skips the prompt. A different secret always requires its own verification.</p>
+      <p><strong>Decrypted view timer:</strong> Once a secret is decrypted and displayed, a 3-minute countdown appears. When it expires, the content is automatically hidden and the trusted session for that secret is revoked — requiring re-authentication to view it again.</p>
+    </div>
+    <div class="alert alert-purple">
+      <div class="alert-icon">ℹ️</div>
+      <div class="alert-body"><strong>Why per-secret?</strong> A global trusted session would allow an attacker who gains brief access to view all secrets after one verification. Per-secret trust limits the blast radius to only the secret that was already verified.</div>
+    </div>
+  </div>
+
+
+  <!-- S6: Login Brute-force -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num" style="background:#7f1d1d;color:#fca5a5;">6</div>
+      <div><h2>Login Brute-force Protection</h2><p>Progressive lockout · escalating durations · stored in DB</p></div>
+    </div>
+    <div class="prose">
+      <p>The login endpoint tracks failed attempts per user account. After <strong>5 consecutive failures</strong>, the account is temporarily locked. Each subsequent lockout doubles the duration.</p>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Lockout #</th><th>Duration</th><th>DB Field</th></tr></thead>
+      <tbody>
+        <tr><td>1st lockout</td><td>10 minutes</td><td>lockCount = 1</td></tr>
+        <tr><td>2nd lockout</td><td>20 minutes</td><td>lockCount = 2</td></tr>
+        <tr><td>3rd lockout</td><td>40 minutes</td><td>lockCount = 3</td></tr>
+        <tr><td>4th+ lockout</td><td>60 minutes (cap)</td><td>lockCount = 4+</td></tr>
+      </tbody>
+    </table>
+    <div class="prose">
+      <p>The <code>lockUntil</code> timestamp and <code>lockCount</code> are stored in the User document. A successful login resets both fields to zero, forgiving the escalation history.</p>
+      <p>During a lockout, the error message tells the user how many minutes remain — without revealing whether the account exists (for unknown usernames, a generic "Invalid credentials" is returned).</p>
+    </div>
+    <div class="alert alert-red">
+      <div class="alert-icon">🚫</div>
+      <div class="alert-body"><strong>Progressive escalation</strong> means an attacker who keeps trying after each lockout faces exponentially longer waits — making automated brute-force attacks impractical.</div>
+    </div>
+  </div>
+
+  <!-- S7: Re-auth Rate Limiting -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num" style="background:#7f1d1d;color:#fca5a5;">7</div>
+      <div><h2>Re-auth Rate Limiting</h2><p>Global attempt counter · 5 failures → 2-min cooldown · all actions blocked</p></div>
+    </div>
+    <div class="prose">
+      <p>The re-authentication modal also has its own brute-force protection. A <strong>global counter</strong> tracks failed password attempts across all sensitive actions (View, Edit, Delete).</p>
+      <p>After <strong>5 global failures</strong>, all sensitive actions are blocked for <strong>2 minutes</strong>. A visible countdown is shown in the modal. Switching between actions does not reset the counter — it is stored at the module level and shared across all components.</p>
+    </div>
+    <div class="grid2">
+      <div class="card"><div class="card-title">🌐 Global Counter</div><p>Stored in a JavaScript module singleton — shared across all hook instances. Switching View → Edit → Delete cannot reset it.</p></div>
+      <div class="card"><div class="card-title">⏱️ Cooldown Display</div><p>The modal shows a large MM:SS countdown and disables the password input during the cooldown period.</p></div>
+      <div class="card"><div class="card-title">🎯 Attempt Dots</div><p>5 dots in the modal visually show how many attempts have been used. Red dots = failed attempts.</p></div>
+      <div class="card"><div class="card-title">✅ Reset on Success</div><p>A successful verification resets the global counter to zero and grants the 3-minute trusted session.</p></div>
+    </div>
+  </div>
+
+  <!-- S8: Access Control -->
+  <div class="section" id="s8">
+    <div class="section-header">
+      <div class="section-num" style="background:#14532d;color:#56d364;">8</div>
+      <div><h2>Access Control</h2><p>JWT middleware · userId scoping · route protection</p></div>
+    </div>
+    <div class="prose">
+      <p>Every backend route that handles secrets or logs is protected by the <code>verifyToken</code> middleware. Requests without a valid JWT are rejected before reaching any controller logic.</p>
+      <p>All database queries are <strong>scoped to the authenticated user's ID</strong>. A user can never read, modify, or delete another user's secrets — even if they know the secret's MongoDB ID.</p>
+    </div>
+    <div class="code-block"><pre><span class="cm">// Every secret query includes userId — middleware/auth.js</span>
+Secret.<span class="fn">findOne</span>({ _id: req.params.id, <span class="nm">userId: req.user.id</span> })
+<span class="cm">// If the secret belongs to another user → returns null → 404</span></pre></div>
+    <div class="prose">
+      <p>The frontend also uses <strong>protected routes</strong> — unauthenticated users are redirected to the login page before any page renders. The JWT is attached to every API request automatically via an Axios interceptor.</p>
+    </div>
+  </div>
+
+  <!-- S9: File Handling -->
+  <div class="section" id="s9">
+    <div class="section-header">
+      <div class="section-num" style="background:#1e3a5f;color:#60a5fa;">9</div>
+      <div><h2>Secure File Handling</h2><p>Auth-gated downloads · type validation · no public access</p></div>
+    </div>
+    <div class="prose">
+      <p>Files uploaded with secrets are stored in the server's <code>/uploads</code> directory, which is <strong>never exposed as a static public folder</strong>. There is no URL that directly serves files.</p>
+      <p>All file downloads go through an authenticated backend route: <code>GET /api/secrets/:id/download</code>. The middleware verifies the JWT and confirms the file belongs to the requesting user before streaming it.</p>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Control</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr><td>Allowed types</td><td>PDF, TXT, DOCX, PNG, JPG, GIF only — enforced by Multer fileFilter</td></tr>
+        <tr><td>Size limit</td><td>10 MB maximum per file</td></tr>
+        <tr><td>Filename</td><td>Renamed to <code>timestamp-userId.ext</code> — original name stored separately in DB</td></tr>
+        <tr><td>Download auth</td><td>JWT verified + userId ownership check before any file is served</td></tr>
+        <tr><td>Cleanup</td><td>File deleted from disk when secret is deleted or file is replaced</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- S10: Logging -->
+  <div class="section" id="s10">
+    <div class="section-header">
+      <div class="section-num" style="background:#14532d;color:#56d364;">10</div>
+      <div><h2>Activity Logging</h2><p>Audit trail · all sensitive actions · stored in MongoDB</p></div>
+    </div>
+    <div class="prose">
+      <p>Every significant action in the system is recorded in the <code>logs</code> collection. This provides a complete audit trail for accountability and forensic analysis.</p>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Action</th><th>Trigger</th><th>Severity</th></tr></thead>
+      <tbody>
+        <tr><td>LOGIN_ATTEMPT</td><td>Successful login</td><td><span class="pill pill-green">INFO</span></td></tr>
+        <tr><td>FAILED_LOGIN</td><td>Wrong password or locked account</td><td><span class="pill pill-red">WARN</span></td></tr>
+        <tr><td>CREATE_SECRET</td><td>New secret saved</td><td><span class="pill pill-blue">INFO</span></td></tr>
+        <tr><td>VIEW_SECRET</td><td>Secret decrypted and returned</td><td><span class="pill pill-purple">AUDIT</span></td></tr>
+        <tr><td>UPDATE_SECRET</td><td>Secret title or content changed</td><td><span class="pill pill-blue">INFO</span></td></tr>
+        <tr><td>DELETE_SECRET</td><td>Secret permanently removed</td><td><span class="pill pill-yellow">WARN</span></td></tr>
+        <tr><td>FILE_UPLOAD</td><td>File attached to a secret</td><td><span class="pill pill-blue">INFO</span></td></tr>
+        <tr><td>FILE_DOWNLOAD</td><td>File downloaded by user</td><td><span class="pill pill-purple">AUDIT</span></td></tr>
+        <tr><td>REAUTH_SUCCESS</td><td>Re-auth password verified</td><td><span class="pill pill-green">INFO</span></td></tr>
+        <tr><td>FAILED_REAUTH</td><td>Wrong password on re-auth</td><td><span class="pill pill-red">WARN</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- S11: Threat Model -->
+  <div class="section" id="s11">
+    <div class="section-header">
+      <div class="section-num" style="background:#2d1f5e;color:#c4b5fd;">11</div>
+      <div><h2>Threat Model Summary</h2><p>What Obelisk protects against</p></div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Threat</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>Database breach</td><td>AES-256 encrypted content · bcrypt hashed passwords — data unreadable without keys</td></tr>
+        <tr><td>Login brute-force</td><td>Progressive lockout (10→20→40→60 min) after 5 failures</td></tr>
+        <tr><td>Re-auth brute-force</td><td>Global 5-attempt limit → 2-minute cooldown across all actions</td></tr>
+        <tr><td>Session hijacking</td><td>JWT expiry (1h) · idle timeout (2 min) · tab-close cleanup</td></tr>
+        <tr><td>Unauthorized access</td><td>JWT middleware on all routes · userId-scoped queries</td></tr>
+        <tr><td>Shoulder surfing</td><td>Re-auth required to view secrets · 3-min auto-hide timer</td></tr>
+        <tr><td>Direct file access</td><td>No public file URLs · auth-gated download route</td></tr>
+        <tr><td>Malicious uploads</td><td>File type whitelist · 10MB size limit · renamed on disk</td></tr>
+        <tr><td>Insider threats</td><td>Full audit log of all sensitive actions with timestamps</td></tr>
+        <tr><td>Token forgery</td><td>JWT signed with server-side secret · signature verified on every request</td></tr>
+      </tbody>
+    </table>
+    <div class="alert alert-green" style="margin-top:1.5rem">
+      <div class="alert-icon">✅</div>
+      <div class="alert-body"><strong>Defence in depth:</strong> No single security layer is relied upon alone. Multiple overlapping controls ensure that if one layer is bypassed, others remain in place to protect the data.</div>
+    </div>
+  </div>
+
+</main>
+</div>
+</body>
+</html>

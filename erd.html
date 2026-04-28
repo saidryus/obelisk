@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obelisk — Database ERD</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0812;
+      color: #ede8f5;
+      min-height: 100vh;
+      padding: 3rem 2rem;
+    }
+
+    /* ── Header ── */
+    .page-header { text-align: center; margin-bottom: 3rem; }
+    .page-header h1 { font-size: 1.6rem; font-weight: 700; color: #c4b5fd; letter-spacing: -0.02em; }
+    .page-header p  { font-size: 0.82rem; color: #4e4870; margin-top: 0.4rem; }
+
+    /* ── Main diagram row ── */
+    .diagram {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 0;
+    }
+
+    /* ── Connector column ── */
+    .connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 120px;
+      gap: 0;
+      padding-top: 60px; /* align with middle of entity */
+    }
+
+    .connector-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .conn-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #6d3fc0;
+      background: #17142a;
+      border: 1px solid #2a2545;
+      border-radius: 4px;
+      padding: 0.15rem 0.45rem;
+      letter-spacing: 0.04em;
+    }
+
+    .conn-arrow {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .conn-arrow svg { width: 100%; }
+
+    /* ── Entity card ── */
+    .entity {
+      width: 260px;
+      background: #0f0d1a;
+      border: 1px solid #2a2545;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .entity-header {
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      border-bottom: 2px solid #2a2545;
+    }
+
+    .entity-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+
+    .entity-header-text h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ede8f5;
+    }
+    .entity-header-text span {
+      font-size: 0.68rem;
+      color: #4e4870;
+      font-family: monospace;
+    }
+
+    /* ── Fields ── */
+    .section-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4e4870;
+      padding: 0.6rem 1rem 0.25rem;
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      padding: 0.35rem 1rem;
+      gap: 0.5rem;
+      border-bottom: 1px solid #17142a;
+    }
+    .field:last-child { border-bottom: none; }
+
+    .field-icon { font-size: 0.7rem; width: 14px; text-align: center; flex-shrink: 0; }
+
+    .field-name {
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      flex: 1;
+      color: #c4b5fd;
+    }
+    .field-name.pk  { color: #fbbf24; font-weight: 700; }
+    .field-name.fk  { color: #60a5fa; }
+    .field-name.std { color: #9b93b8; }
+
+    .field-type {
+      font-size: 0.68rem;
+      color: #4e4870;
+      font-family: monospace;
+      flex-shrink: 0;
+    }
+
+    .tag {
+      font-size: 0.58rem;
+      font-weight: 700;
+      padding: 0.12rem 0.4rem;
+      border-radius: 3px;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+    .tag-pk  { background: #78350f33; color: #fbbf24; border: 1px solid #78350f; }
+    .tag-fk  { background: #1e3a5f33; color: #60a5fa; border: 1px solid #1e3a5f; }
+    .tag-uni { background: #14532d33; color: #56d364; border: 1px solid #14532d; }
+    .tag-enc { background: #2d1f5e33; color: #c4b5fd; border: 1px solid #2d1f5e; }
+    .tag-opt { background: #1e293b33; color: #64748b; border: 1px solid #1e293b; }
+
+    .field-divider {
+      height: 1px;
+      background: #2a2545;
+      margin: 0.2rem 0;
+    }
+
+    /* ── Header accent colors ── */
+    .hdr-user   { background: linear-gradient(135deg, #1a1030, #17142a); border-bottom-color: #6d3fc0; }
+    .hdr-secret { background: linear-gradient(135deg, #0f1a30, #17142a); border-bottom-color: #3b82f6; }
+    .hdr-log    { background: linear-gradient(135deg, #0f1a20, #17142a); border-bottom-color: #22c55e; }
+
+    .icon-user   { background: #2d1f5e; }
+    .icon-secret { background: #1e3a5f; }
+    .icon-log    { background: #14532d; }
+
+    /* ── Below diagram: enums + notes ── */
+    .bottom-section {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-top: 3rem;
+      flex-wrap: wrap;
+    }
+
+    .info-box {
+      background: #0f0d1a;
+      border: 1px solid #2a2545;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      min-width: 220px;
+      max-width: 280px;
+    }
+    .info-box h3 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #c4b5fd;
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .info-box p {
+      font-size: 0.75rem;
+      color: #9b93b8;
+      line-height: 1.6;
+    }
+
+    .enum-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem 0.5rem;
+    }
+    .enum-val {
+      font-size: 0.65rem;
+      font-family: monospace;
+      color: #6d5fa0;
+      background: #17142a;
+      border: 1px solid #2a2545;
+      border-radius: 3px;
+      padding: 0.15rem 0.4rem;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      justify-content: center;
+      margin-top: 2.5rem;
+      padding: 1rem 1.5rem;
+      background: #0f0d1a;
+      border: 1px solid #2a2545;
+      border-radius: 10px;
+      max-width: 860px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: #9b93b8;
+    }
+    .legend-swatch {
+      width: 28px; height: 16px;
+      border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.55rem; font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <h1>Obelisk — Entity Relationship Diagram</h1>
+    <p>MongoDB Collections &nbsp;·&nbsp; Mongoose Models &nbsp;·&nbsp; Relationships</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MAIN DIAGRAM
+  ══════════════════════════════════════════ -->
+  <div class="diagram">
+
+    <!-- ── USER ── -->
+    <div class="entity">
+      <div class="entity-header hdr-user">
+        <div class="entity-icon icon-user">👤</div>
+        <div class="entity-header-text">
+          <h2>User</h2>
+          <span>collection: users</span>
+        </div>
+      </div>
+
+      <div class="section-label">Identity</div>
+      <div class="field">
+        <span class="field-icon">🔑</span>
+        <span class="field-name pk">_id</span>
+        <span class="field-type">ObjectId</span>
+        <span class="tag tag-pk">PK</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">username</span>
+        <span class="field-type">String</span>
+        <span class="tag tag-uni">UNIQUE</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">email</span>
+        <span class="field-type">String</span>
+        <span class="tag tag-uni">UNIQUE</span>
+      </div>
+      <div class="field">
+        <span class="field-icon">🔒</span>
+        <span class="field-name std">password</span>
+        <span class="field-type">String</span>
+        <span class="tag tag-enc">BCRYPT</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">role</span>
+        <span class="field-type">String</span>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="section-label">Brute-force Protection</div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">failedLoginAttempts</span>
+        <span class="field-type">Number</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">lockUntil</span>
+        <span class="field-type">Date</span>
+        <span class="tag tag-opt">nullable</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">lockCount</span>
+        <span class="field-type">Number</span>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">createdAt</span>
+        <span class="field-type">Date</span>
+      </div>
+    </div>
+
+    <!-- ── CONNECTOR: User → Secret ── -->
+    <div class="connector">
+      <div class="connector-line">
+        <span class="conn-label">1 : N</span>
+        <svg height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowR" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#6d3fc0"/>
+            </marker>
+          </defs>
+          <line x1="0" y1="20" x2="112" y2="20" stroke="#6d3fc0" stroke-width="2" marker-end="url(#arrowR)"/>
+          <!-- one mark at start -->
+          <line x1="4" y1="12" x2="4" y2="28" stroke="#6d3fc0" stroke-width="2"/>
+          <line x1="10" y1="12" x2="10" y2="28" stroke="#6d3fc0" stroke-width="2"/>
+          <!-- crow foot at end -->
+          <path d="M112,12 L100,20 L112,28" fill="none" stroke="#6d3fc0" stroke-width="2"/>
+        </svg>
+        <span style="font-size:0.65rem; color:#4e4870; text-align:center; line-height:1.4;">
+          One user<br/>owns many secrets
+        </span>
+      </div>
+    </div>
+
+    <!-- ── SECRET ── -->
+    <div class="entity">
+      <div class="entity-header hdr-secret">
+        <div class="entity-icon icon-secret">🔐</div>
+        <div class="entity-header-text">
+          <h2>Secret</h2>
+          <span>collection: secrets</span>
+        </div>
+      </div>
+
+      <div class="section-label">Identity</div>
+      <div class="field">
+        <span class="field-icon">🔑</span>
+        <span class="field-name pk">_id</span>
+        <span class="field-type">ObjectId</span>
+        <span class="tag tag-pk">PK</span>
+      </div>
+      <div class="field">
+        <span class="field-icon">🔗</span>
+        <span class="field-name fk">userId</span>
+        <span class="field-type">ObjectId</span>
+        <span class="tag tag-fk">FK → User</span>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="section-label">Content</div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">title</span>
+        <span class="field-type">String</span>
+      </div>
+      <div class="field">
+        <span class="field-icon">🔒</span>
+        <span class="field-name std">encryptedText</span>
+        <span class="field-type">String</span>
+        <span class="tag tag-enc">AES-256</span>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="section-label">File Attachment</div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">filePath</span>
+        <span class="field-type">String</span>
+        <span class="tag tag-opt">nullable</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">originalFileName</span>
+        <span class="field-type">String</span>
+        <span class="tag tag-opt">nullable</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">fileSize</span>
+        <span class="field-type">Number</span>
+        <span class="tag tag-opt">nullable</span>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">createdAt</span>
+        <span class="field-type">Date</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">updatedAt</span>
+        <span class="field-type">Date</span>
+      </div>
+    </div>
+
+    <!-- ── CONNECTOR: User → Log ── -->
+    <div class="connector">
+      <div class="connector-line">
+        <span class="conn-label">1 : N</span>
+        <svg height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowR2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#22c55e"/>
+            </marker>
+          </defs>
+          <line x1="0" y1="20" x2="112" y2="20" stroke="#22c55e" stroke-width="2" marker-end="url(#arrowR2)"/>
+          <line x1="4" y1="12" x2="4" y2="28" stroke="#22c55e" stroke-width="2"/>
+          <line x1="10" y1="12" x2="10" y2="28" stroke="#22c55e" stroke-width="2"/>
+          <path d="M112,12 L100,20 L112,28" fill="none" stroke="#22c55e" stroke-width="2"/>
+        </svg>
+        <span style="font-size:0.65rem; color:#4e4870; text-align:center; line-height:1.4;">
+          One user<br/>generates many logs
+        </span>
+      </div>
+    </div>
+
+    <!-- ── LOG ── -->
+    <div class="entity">
+      <div class="entity-header hdr-log">
+        <div class="entity-icon icon-log">📋</div>
+        <div class="entity-header-text">
+          <h2>Log</h2>
+          <span>collection: logs</span>
+        </div>
+      </div>
+
+      <div class="section-label">Identity</div>
+      <div class="field">
+        <span class="field-icon">🔑</span>
+        <span class="field-name pk">_id</span>
+        <span class="field-type">ObjectId</span>
+        <span class="tag tag-pk">PK</span>
+      </div>
+      <div class="field">
+        <span class="field-icon">🔗</span>
+        <span class="field-name fk">userId</span>
+        <span class="field-type">ObjectId</span>
+        <span class="tag tag-fk">FK → User</span>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="section-label">Event</div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">action</span>
+        <span class="field-type">String</span>
+      </div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">detail</span>
+        <span class="field-type">String</span>
+        <span class="tag tag-opt">nullable</span>
+      </div>
+
+      <div class="field-divider"></div>
+      <div class="field">
+        <span class="field-icon"> </span>
+        <span class="field-name std">timestamp</span>
+        <span class="field-type">Date</span>
+      </div>
+    </div>
+
+  </div><!-- end .diagram -->
+
+  <!-- ══════════════════════════════════════════
+       BOTTOM INFO
+  ══════════════════════════════════════════ -->
+  <div class="bottom-section">
+
+    <div class="info-box">
+      <h3>📋 Log.action values</h3>
+      <div class="enum-grid">
+        <span class="enum-val">LOGIN_ATTEMPT</span>
+        <span class="enum-val">FAILED_LOGIN</span>
+        <span class="enum-val">CREATE_SECRET</span>
+        <span class="enum-val">VIEW_SECRET</span>
+        <span class="enum-val">UPDATE_SECRET</span>
+        <span class="enum-val">DELETE_SECRET</span>
+        <span class="enum-val">FILE_UPLOAD</span>
+        <span class="enum-val">FILE_DOWNLOAD</span>
+        <span class="enum-val">REAUTH_SUCCESS</span>
+        <span class="enum-val">FAILED_REAUTH</span>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <h3>👤 User.role values</h3>
+      <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+        <span class="enum-val" style="color:#c4b5fd;">admin</span>
+        <span class="enum-val">employee</span>
+      </div>
+      <p>Admins and employees share the same model. Role is stored as a plain string with a default of <code style="font-size:0.7rem; color:#c4b5fd;">employee</code>.</p>
+    </div>
+
+    <div class="info-box">
+      <h3>🔒 Security Notes</h3>
+      <p>
+        <strong style="color:#fbbf24;">password</strong> — bcrypt hashed, cost 12. Never stored in plain text.<br/><br/>
+        <strong style="color:#c4b5fd;">encryptedText</strong> — AES-256-CBC encrypted before saving. Raw content never persists in MongoDB.<br/><br/>
+        <strong style="color:#60a5fa;">filePath</strong> — stored in <code style="font-size:0.7rem;">/uploads</code>, never publicly accessible.
+      </p>
+    </div>
+
+    <div class="info-box">
+      <h3>🔗 Relationships</h3>
+      <p>
+        <strong style="color:#c4b5fd;">User → Secrets</strong><br/>
+        One user owns many secrets.<br/>
+        <code style="font-size:0.7rem; color:#60a5fa;">Secret.userId</code> references <code style="font-size:0.7rem; color:#fbbf24;">User._id</code><br/><br/>
+        <strong style="color:#c4b5fd;">User → Logs</strong><br/>
+        One user generates many logs.<br/>
+        <code style="font-size:0.7rem; color:#60a5fa;">Log.userId</code> references <code style="font-size:0.7rem; color:#fbbf24;">User._id</code><br/>
+        <span style="font-size:0.7rem; color:#4e4870;">(nullable for anonymous attempts)</span>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- ── Legend ── -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch tag-pk" style="border:1px solid #78350f;">PK</div>
+      Primary Key
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch tag-fk" style="border:1px solid #1e3a5f;">FK</div>
+      Foreign Key (reference)
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch tag-uni" style="border:1px solid #14532d;">UNI</div>
+      Unique Index
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch tag-enc" style="border:1px solid #2d1f5e;">ENC</div>
+      Encrypted / Hashed
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch tag-opt" style="border:1px solid #1e293b;">OPT</div>
+      Optional / Nullable
+    </div>
+    <div class="legend-item">
+      <svg width="60" height="16" viewBox="0 0 60 16">
+        <line x1="0" y1="8" x2="52" y2="8" stroke="#6d3fc0" stroke-width="2"/>
+        <line x1="2" y1="3" x2="2" y2="13" stroke="#6d3fc0" stroke-width="2"/>
+        <line x1="7" y1="3" x2="7" y2="13" stroke="#6d3fc0" stroke-width="2"/>
+        <path d="M52,3 L42,8 L52,13" fill="none" stroke="#6d3fc0" stroke-width="2"/>
+      </svg>
+      One-to-Many (1:N)
+    </div>
+  </div>
+
+</body>
+</html>
