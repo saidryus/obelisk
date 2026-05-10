@@ -1,12 +1,15 @@
 # Obelisk — Defense & Presentation Guide
 
-A reviewer's guide explaining **why** every technology, design decision, and security feature was chosen.
+A reviewer's guide explaining **what** the system does, **what technologies** were used, and **why** every design decision was made.
 Read this before your presentation so you can answer any question confidently.
 
 ---
 
 ## Table of Contents
 
+- [System Overview](#system-overview)
+- [Tech Stack Summary](#tech-stack-summary)
+- [Core Functionalities](#core-functionalities)
 1. [Why MERN Stack?](#1-why-mern-stack)
 2. [Why MongoDB?](#2-why-mongodb)
 3. [Why Express.js?](#3-why-expressjs)
@@ -28,6 +31,94 @@ Read this before your presentation so you can answer any question confidently.
 19. [Why localStorage for JWT?](#19-why-localstorage-for-jwt)
 20. [Why React custom hooks for security logic?](#20-why-react-custom-hooks-for-security-logic)
 21. [Common Instructor Questions](#21-common-instructor-questions)
+
+---
+
+## System Overview
+
+**Obelisk** is a full-stack MERN web application that allows authorized company employees to securely store, manage, and access confidential trade secrets. It is designed around the principle of **defence in depth** — multiple overlapping security layers so that no single failure exposes all data.
+
+- **Deployed at:** https://obelisk-n4ww.onrender.com
+- **Database:** MongoDB Atlas (cloud-hosted)
+- **Demo credentials:** alice / Alice@123 · bob / Bob@123 · charlie / Charlie@123
+
+---
+
+## Tech Stack Summary
+
+| Layer | Technology | Version | Purpose |
+|---|---|---|---|
+| Frontend Framework | React | 18 | Component-based UI, hooks for security logic |
+| Client Routing | React Router | v6 | Protected routes, client-side navigation |
+| HTTP Client | Axios | 1.x | API calls with JWT interceptors |
+| Notifications | React Hot Toast | 2.x | Non-blocking toast feedback |
+| Backend Framework | Express.js | 4.x | REST API, middleware chaining |
+| Runtime | Node.js | 18+ | Server-side JavaScript, built-in crypto |
+| Database | MongoDB + Mongoose | 7.x | Document storage, schema modeling |
+| Auth Tokens | jsonwebtoken (JWT) | 9.x | Stateless authentication, 1-hour expiry |
+| Password Security | bcryptjs | 2.x | One-way hashing, cost factor 12 |
+| Encryption | Node.js crypto (built-in) | — | AES-256-CBC encryption/decryption |
+| File Uploads | Multer | 1.x | Multipart form handling, type/size validation |
+| Environment Config | dotenv | 16.x | Secure environment variable management |
+| Styling | Custom CSS + CSS Variables | — | Hand-written dark theme, no framework |
+| Deployment | Render (backend) | — | Free tier Node.js hosting |
+| Database Hosting | MongoDB Atlas | — | Free tier cloud database |
+
+---
+
+## Core Functionalities
+
+### 1. User Authentication
+- Login with username and password
+- No public registration — accounts pre-created via seed script
+- JWT issued on login, expires in 1 hour
+- Token stored in localStorage, attached to every API request via Axios interceptor
+- Expired/invalid tokens automatically redirect to login
+
+### 2. Trade Secret Management (CRUD)
+- **Create** — add a secret with a title, text content, and/or file attachment
+- **Read** — list all your secrets (metadata only, no content exposed in list)
+- **Update** — edit title, text, or replace the file attachment
+- **Delete** — permanently removes the secret and its file from disk
+- All operations scoped to the logged-in user — users cannot access each other's secrets
+
+### 3. AES-256 Encryption
+- Text content is encrypted with AES-256-CBC before being saved to MongoDB
+- A random 16-byte IV is generated per encryption
+- Stored as `ivHex:ciphertextHex` — unreadable without the AES key
+- Decryption happens in memory on the backend — plaintext never written to the database
+- The AES key lives only in the server's `.env` file
+
+### 4. File Upload and Secure Download
+- Files uploaded via Multer (PDF, TXT, DOCX, PNG, JPG, GIF — max 10 MB)
+- Stored in `/uploads` on the server — not publicly accessible
+- Downloads go through an authenticated route that verifies JWT and ownership
+- Every download is logged as `FILE_DOWNLOAD`
+
+### 5. Re-authentication for Sensitive Actions
+- Viewing, editing, or deleting a secret requires re-entering your password
+- Backend verifies password via `POST /api/auth/verify-password`
+- Per-secret trusted session: verify once → 3-minute window for that specific secret
+- After 3 minutes, content auto-hides and trust is revoked
+- Timer persists across tab switches (stored in sessionStorage)
+
+### 6. Session Management
+- Visible countdown timer in sidebar (60 minutes from login)
+- Warning toast at 5 minutes remaining
+- Idle timeout: auto-logout after 2 minutes of no activity
+- Tab-close cleanup: JWT removed from localStorage on tab close (best-effort)
+
+### 7. Brute-force Protection
+- **Login:** 5 failed attempts → progressive lockout (10 → 20 → 40 → 60 minutes)
+- **Re-auth:** 5 global failed attempts → 2-minute cooldown on all sensitive actions
+- Global re-auth counter cannot be reset by switching between View/Edit/Delete
+- All lockout data stored in MongoDB (persists across server restarts)
+
+### 8. Activity Logging
+- Every significant action recorded: userId + action + detail + timestamp
+- 10 action types: LOGIN_ATTEMPT, FAILED_LOGIN, CREATE_SECRET, VIEW_SECRET, UPDATE_SECRET, DELETE_SECRET, FILE_UPLOAD, FILE_DOWNLOAD, REAUTH_SUCCESS, FAILED_REAUTH
+- Logs are never deleted — even deleting a secret keeps its audit trail
+- Filterable logs page in the UI
 
 ---
 
